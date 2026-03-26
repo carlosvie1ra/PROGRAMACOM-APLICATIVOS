@@ -1,0 +1,7 @@
+senha_correta = "47"
+senha = input("qual a senha?")
+
+while senha != senha_correta
+    senha = input("senha incorreta, digite a senha correta: ")
+
+print("boas vindas!")
