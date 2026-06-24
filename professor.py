@@ -1,63 +1,68 @@
 import sqlite3
+
 conexao = sqlite3.connect('escola_demostracao.db')
 cursor = conexao.cursor()
 
 cursor.execute('''create table if not exists professores (
-               id_professor integer primary key autoincrement,
-               nome_professor text not null,
-               telefone_professor text not null,
-               materia_professor text,
-               idade_professor integer not null,
-               cpf_professor text not null,
-               salario_professor real,
-               nome_colegio text,
-               endereco_professor TEXT
-               ) ''' )
+        id_professor integer primary key autoincrement,
+        nome_professor text not null,
+        telefone_professor text not null,
+        materia_professor text,
+        idade_professor integer not null,
+        cpf_professor text not null,
+        salario_professor real,
+        nome_colegio text,
+        endereco_professor TEXT
+         ) ''')
 
-def registrar_professores():   
-    print("\n ==== REGISTRAR PROFESSORES ====")
-    nome = input("Qual o nome completo do professor? (obrigatório): ")
-    telefone = input("Qual o telefone do professor? (obrigatório): ")
-    materia = input("Qual a matéria do professor? (opcional): ")
-    idade = int(input("Qual a idade do professor?(obrigatório): "))
-    cpf = input("qual o CPF do professor? (obrigatório): ")
-    salario = input("qual o salário atual do professor? (opcional): ")
-    nome_colegio = input("qual o nome do colégio? (obrigatório): ")
-    endereco = input("qual seu endereço?: ")
+def registrar_professores():
+    try:
+        print("\n ==== REGISTRAR PROFESSORES ====")
+        nome = input("Qual o nome completo do professor? (obrigatório): ")
+        telefone = input("Qual o telefone do professor? (obrigatório): ")
+        materia = input("Qual a matéria do professor? (opcional): ")
+        idade = int(input("Qual a idade do professor?(obrigatório): "))
+        cpf = input("qual o CPF do professor? (obrigatório): ")
+        salario = input("qual o salário atual do professor? (opcional): ")
+        nome_colegio = input("qual o nome do colégio? (obrigatório): ")
+        endereco = input("qual seu endereço? (obrigatorio): ")
 
-    comando_inserir = f'''INSERT into professores (nome_professor, telefone_professor, materia_professor, idade_professor, cpf_professor, salario_professor, nome_colegio, endereco_professor)
-     values ('{nome}', '{telefone}', '{materia}', {idade}, '{cpf}', {salario}, '{nome_colegio}', '{endereco}')'''
-    
-    cursor.execute(comando_inserir)
-    print("professor registrado com sucesso!")
-    conexao.commit()
+    comando_inserir = '''INSERT into professores (nome_professor, telefone_professor, materia_professor, idade_professor, cpf_professor, salario_professor, nome_colegio, endereco_professor)
+        values (?, ?, ?, ?, ?, ?, ?, ?)'''
+
+    cursor.execute(comando_inserir, (nome, telefone, materia, idade, cpf, salario, nome_colegio, endereco))
+        print("professor registrado com sucesso!")
+        conexao.commit()
+    except sqlite3.Error as e:
+        print(f"Erro ao registrar professor: {e}")
 
 def ver_professores():
-    cursor.execute("SELECT * FROM professores")
-    professores = cursor.fetchall()
+    try:
+        cursor.execute("SELECT * FROM professores")
+        professores = cursor.fetchall()
 
-    print("\n ==== PROFESSORES REGISTRADOS ==== ")
+        print("\n ==== PROFESSORES REGISTRADOS ==== ")
 
-    for professor in professores:
+        for professor in professores:
         print(professor)
+    except sqlite3.Error as e:
+            print(f"Erro ao visualizar professores: {e}")
 
-def atualizar_professores():    
-    ver_professores()
+def atualizar_professores():
+    try:
+        ver_professores()
 
-    print("\n ==== ATUALIZAR PROFESSORES ====")
-    
-    id_professor = int(input("qual o ID do professor que deseja atualizar?: "))
+        print("\n ==== ATUALIZAR PROFESSORES ====")
 
-    cursor.execute(f"SELECT * FROM professores WHERE id_professor = {id_professor}")
+        id_professor = int(input("qual o ID do professor que deseja atualizar?: "))
 
-    professor = cursor.fetchone()
+        cursor.execute("SELECT * FROM professores WHERE id_professor = ?", (id_professor,))
+        professor = cursor.fetchone()
 
-    if not professor:
-        print("não encontrado.")
-        conexao.close()
-        return
-    
-    else:
+        if not professor:
+            print("não encontrado.")
+            return
+
         nome = input("Qual o nome completo do professor? (obrigatório): ")
         telefone = input("Qual o telefone do professor? (obrigatório): ")
         materia = input("Qual a matéria do professor? (opcional): ")
@@ -68,45 +73,64 @@ def atualizar_professores():
 
         cursor.execute(
             "UPDATE professores SET nome_professor = ?, telefone_professor = ?, materia_professor = ?, idade_professor = ?, cpf_professor = ?, salario_professor = ?, nome_colegio = ? WHERE id_professor = ?",
-            (nome, telefone, materia, idade, cpf, salario, nome_colegio, id_professor )
-        ) 
+            (nome, telefone, materia, idade, cpf, salario, nome_colegio, id_professor)
+            )
 
         print("professor atualizado com sucesso!")
         conexao.commit()
+    except sqlite3.Error as e:
+        print(f"Erro ao atualizar professor: {e}")
 
-def deletar_professores():   
-    ver_professores()
+def deletar_professores():
+    try:
+        ver_professores()
 
-    print("\n ==== EXCLUIR PROFESSORES ====")
+        print("\n ==== EXCLUIR PROFESSORES ====")
 
-    idx = int(input("qual o ID do professor que deseja excluir?: "))
+        idx = int(input("qual o ID do professor que deseja excluir?: "))
 
-    cursor.execute(
-        "DELETE FROM professores WHERE id_professor = ?", (idx,)
-    )
+        cursor.execute("DELETE FROM professores WHERE id_professor = ?", (idx,))
+        print("professor excluido com sucesso!")
+        conexao.commit()
+    except sqlite3.Error as e:
+        print(f"Erro ao excluir professor: {e}")
 
-    print("professor excluido com sucesso!")
-
-    conexao.commit()
-
-def menu():     
+def menu():
     while True:
-        print("\n ==== MENU DO USUÁRIO ====")
-        print("1 - Registrar Professores")
-        print("2 - Ver Professores Registrados")
-        print("3 - Atualizar Informações de Professores")
-        print("4 - Deletar Professores Registrados")
-        print("5 - sair")
+        try:
+            print("\n ==== MENU DO USUÁRIO ====")
+            print("1 - Registrar Professores")
+            print("2 - Ver Professores Registrados")
+            print("3 - Atualizar Informações de Professores")
+            print("4 - Deletar Professores Registrados")
+            print("5 - sair")
 
-        opcao = int(input("Qual opção vai escolher?: "))
+            opcao = int(input("Qual opção vai escolher?: "))
 
-        if opcao == 1: registrar_professores()
-        elif opcao == 2: ver_professores()
-        elif opcao == 3: atualizar_professores()
-        elif opcao == 4: deletar_professores()
-        elif opcao == 5:
-            print("encerrando sistema...")
-            conexao.close()
-            break
+            if opcao == 1:
+                registrar_professores()
+            elif opcao == 2:
+                ver_professores()
+            elif opcao == 3:
+                atualizar_professores()
+            elif opcao == 4:
+                deletar_professores()
+            elif opcao == 5:
+                print("encerrando sistema...")
+                conexao.close()
+                break
+            else:
+                print("Opção inválida. Tente novamente.")
+        except ValueError:
+            print("Entrada inválida. Por favor, insira um número.")
+         except Exception as e:
+            print(f"Erro inesperado: {e}")
+
 
 menu()
+
+except sqlite3.Error as e:
+    print(f"Erro ao conectar ao banco de dados: {e}")
+finally:
+    if 'conexao' in locals():
+        conexao.close()
