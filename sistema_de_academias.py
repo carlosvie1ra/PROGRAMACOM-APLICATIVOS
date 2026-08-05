@@ -10,7 +10,7 @@ def criar_tabela_academias():
         CREATE TABLE IF NOT EXISTS academias (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_unidade TEXT NOT NULL,
-            idade INTEGER NOT NULL
+            bairro TEXT NOT NULL
     )''')
 
 cursor.execute('''
@@ -27,12 +27,12 @@ def cadastrar_academia():
 
     try:
         nome_unidade = input("NOME DA UNIDADE: ")
-        idade = int(input("INFORME A IDADE: "))
+        bairro = input("INFORME o BAIRRO DA ACADEMIA: ")
 
-        cursor.execute("INSER INTO academias (nome_unidade, idade) VALUES (?, ?)",
-                        (nome_unidade, idade))
+        cursor.execute("INSERT INTO academias (nome_unidade, bairro) VALUES (?, ?)",
+                        (nome_unidade, bairro))
         conexao.commit()
-        print("\n ---cinema academia: com sucesso!!!--- ")
+        print("\n --academia: cadastrada com sucesso!!!--- ")
     except sqlite3.Error as e:
         print(f"Erro ao cadastrar academias: {e}")
 
@@ -40,5 +40,20 @@ def cadastrar_alunos():
 
     try:
         nome_aluno = input("INFORME O NOME: ")
+        mensalidade = int(input("VALOR DA SUA MENSALIDADE: "))
+        id_academia = int(input("ID DA ACADEMIA: "))
 
-        
+        cursor.execute("INSERT INTO alunos (nome_aluno, mensalidade, id_academia) VALUES (?, ?, ?)",
+                        (nome_aluno, mensalidade, id_academia))
+        conexao.commit()
+        print("\n ---aluno: cadastrado com sucesso!!!--- ")
+    except sqlite3.IntegrityError:
+        print("Erro: ID da ACADEMIA inexistente!")
+    except ValueError:
+        print("Erro: mensalidade e ID da ACADEMIA devem ser números inteiros!")
+
+criar_tabela_academias()
+cadastrar_academia()
+cadastrar_alunos()
+
+conexao.close()
